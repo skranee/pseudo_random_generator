@@ -33,14 +33,17 @@
     <v-btn class="generate-btn" style="margin-top: 15px;" @click="executeMassiveTest">Execute Test</v-btn>
     <v-progress-linear style="margin-top: 15px; height: 8px; width: 80%" color="error" :model-value="testsProgress"></v-progress-linear>
   </div>
-  <v-select
-    style="background: black; width: 300px; margin: 20px;"
-    label="Current mode"
-    :items="modes"
-    variant="solo-filled"
-    v-model="currentMode"
-    @update:modelValue="resetAll"
-  ></v-select>
+  <div style="display: flex; flex-direction: row; align-items: center;">
+    <v-select
+      style="background: black; max-width: 300px; margin: 20px;"
+      label="Current mode"
+      :items="modes"
+      variant="solo-filled"
+      v-model="currentMode"
+      @update:modelValue="resetAll"
+    ></v-select>
+    <v-btn @click="resetAll">Reset</v-btn>
+  </div>
 </template>
 
 <script lang="ts" setup>

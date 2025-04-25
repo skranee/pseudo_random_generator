@@ -30,9 +30,8 @@
       </v-list-item>
     </v-list>
     <v-btn class="generate-btn" @click="generate">Generate</v-btn>
-    <v-snackbar v-model="showSnackbar" :timeout="1000" timer="grey">
-      BINGO!!!
-    </v-snackbar>
+    <v-btn class="generate-btn" style="margin-top: 15px;" @click="executeMassiveTest">Execute Test</v-btn>
+    <v-progress-linear style="margin-top: 15px; height: 8px; width: 80%" color="error" :model-value="testsProgress"></v-progress-linear>
   </div>
   <v-select
     style="background: black; width: 300px; margin: 20px;"
@@ -61,6 +60,8 @@ const currentChance = ref(0.1); // Current probability
 const streak = ref(0); // Current miss streak
 const actualChance = ref(0)
 const longestMissStreak = ref(0)
+const testsAmount = ref(1000)
+const testsProgress = ref(0)
 
 // Constants for Adjust chances mode (optimized for 10% target)
 const BASE_CHANCE = 0.1;       // Target probability (10%)
@@ -79,14 +80,24 @@ watch([misses, bingos], () => {
 
 watch(streak, () => {
   if (longestMissStreak.value < streak.value) {
-    longestMissStreak.value = streak.value
+    longestMissStreak.value = streak.value;
   }
 })
+
+const executeMassiveTest = () => {
+  for(let i = 0; i < testsAmount.value; ++i) {
+    setTimeout(() => {
+      testsProgress.value = (i / testsAmount.value).toFixed(2) * 100
+
+      generate()
+    }, 0)
+  }
+}
 
 /**
  * Resets all counters and generated values when mode changes
  */
-function resetAll() {
+const resetAll = () => {
   generated.value = [];
   misses.value = 0;
   bingos.value = 0;
@@ -99,7 +110,7 @@ function resetAll() {
 /**
  * Generates result in Adjust chances mode with dynamic probability adjustment
  */
-function generateAdjustChances() {
+const generateAdjustChances = () => {
   const rand = Math.random();
 
   if (rand <= currentChance.value) {
@@ -134,7 +145,7 @@ function generateAdjustChances() {
 /**
  * Generates result in Stable chances mode with fixed probability
  */
-function generateStableChances() {
+const generateStableChances = () => {
   const rand = Math.random();
 
   if (rand <= STABLE_CHANCE) {
@@ -152,7 +163,7 @@ function generateStableChances() {
 /**
  * Main generate function that routes to the appropriate mode handler
  */
-function generate() {
+const generate = () => {
   if (currentMode.value === 'Adjust chances') {
     generateAdjustChances();
   } else {

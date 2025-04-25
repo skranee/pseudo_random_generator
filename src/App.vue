@@ -46,11 +46,9 @@
 <script lang="ts" setup>
 import {ref, watch} from 'vue';
 
-// Define available modes as constants for type safety
 const modes = ['Adjust chances', 'Stable chances'] as const;
 type Mode = typeof modes[number];
 
-// Reactive state variables
 const currentMode = ref<Mode>('Adjust chances');
 const generated = ref<string[]>([]);
 const misses = ref(0);
@@ -67,9 +65,9 @@ const testsProgress = ref(0)
 const BASE_CHANCE = 0.1;       // Target probability (10%)
 const MAX_CHANCE = 0.3;        // Upper bound (30%)
 const MIN_CHANCE = 0.05;       // Lower bound (5%)
-const INCREMENT = 0.02;        // Base increment after miss (2%)
-const DECREMENT_BASE = 0.1;   // Decrement when above base (10%)
-const DECREMENT_MIN = 0.02;    // Decrement when below base (2%)
+const INCREMENT = 0.005;        // Base increment after miss (0.5%)
+const DECREMENT_BASE = 0.2;   // Decrement when above base (20%)
+const DECREMENT_MIN = 0.05;    // Decrement when below base (2%)
 
 // Constant for Stable chances mode
 const STABLE_CHANCE = 0.1;     // Fixed probability (10%)
@@ -85,6 +83,8 @@ watch(streak, () => {
 })
 
 const executeMassiveTest = () => {
+  resetAll();
+
   for(let i = 0; i < testsAmount.value; ++i) {
     setTimeout(() => {
       testsProgress.value = (i / testsAmount.value).toFixed(2) * 100
@@ -92,6 +92,15 @@ const executeMassiveTest = () => {
       generate()
     }, 0)
   }
+}
+
+/**
+ * Get a cryptographically secure random number
+ */
+const getTrueRandomNumber = (min: number, max: number) => {
+  const array = new Uint32Array(1);
+  window.crypto.getRandomValues(array);
+  return (array[0] % (max - min + 1)) + min;
 }
 
 /**
@@ -122,7 +131,7 @@ const generateAdjustChances = () => {
     // Adjust probability down
     if (currentChance.value > BASE_CHANCE) {
       // More aggressive decrease when above target
-      currentChance.value = Math.max(currentChance.value - DECREMENT_BASE, BASE_CHANCE);
+      currentChance.value = Math.max(currentChance.value - DECREMENT_BASE, BASE_CHANCE - 0.02);
     } else {
       // Gentle decrease when below target
       currentChance.value = Math.max(currentChance.value - DECREMENT_MIN, MIN_CHANCE);
@@ -146,7 +155,9 @@ const generateAdjustChances = () => {
  * Generates result in Stable chances mode with fixed probability
  */
 const generateStableChances = () => {
-  const rand = Math.random();
+  const randomNumber = getTrueRandomNumber(1, 100);
+
+  const rand = (randomNumber / 100).toFixed(2);
 
   if (rand <= STABLE_CHANCE) {
     bingos.value++;
